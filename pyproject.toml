@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cs677-bayesian-trajectory-selection"
+version = "0.1.0"
+description = "Reconstruction of James Chen's CS 677 Bayesian reasoning trajectory selection project"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+ml = ["torch>=2.6,<3", "transformers>=5.3,<6", "datasets>=4.8,<5", "peft>=0.18,<0.22", "accelerate>=1.10,<2"]
+quantization = ["bitsandbytes>=0.45,<1"]
+dev = ["pytest>=7,<10", "matplotlib>=3.8,<4"]
+
+[project.scripts]
+cs677 = "cs677.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

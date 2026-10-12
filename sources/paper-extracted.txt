@@ -1,0 +1,247 @@
+=== PAGE 1 ===
+Bayesian Epistemic Uncertainty for Reasoning Trajectory
+Selection in Language Model Fine-Tuning
+Introduction and Motivation
+Large language models demonstrate significantly improved performance in mathematical and
+multi-step reasoning when trained to generate intermediate reasoning steps rather than
+directly predicting the final answer (Wei et al., 2022). This establishes the foundation of
+many works that use reasoning trajectory as training data, including bootstrap rationales for
+hard problems (Zelikman et al., 2022) and methods that use a verifier to select the one ranked
+highest among many generated candidate solutions. In this method, the quality of selected
+reasoning trajectories is crucial. If a stronger teacher model can generate several different
+step-by-step reasoning solutions to each math problem, a student model may learn more math
+knowledge and concepts compared to others. Utilizing the teacher model’s reasoning dataset
+is essential due to benchmarks such as GSM8K and MATH manifests that mathematical
+reasoning remains challenging even for large modern transformer models (Cobbe et al., 2021;
+Hendrycks et al., 2021).
+The core idea is to prefer training data that the student model finds uncertain, because those
+samples may contain information that the student model has not yet learned. Nonetheless,
+uncertainty is the clue that we can use to identify which datasets have the most information
+that the model lacks. Kendall and Gal (2017) distinguish uncertainty into two types. Aleatoric
+uncertainty, which comes from ambiguity or variability in data, and epistemic uncertainty,
+which reflects a lack of knowledge in the model itself. For reasoning trajectories, this
+difference is significant. A student model may be assigned high uncertainty (entropy) from
+the generated solution by the teacher model since the underlying mathematical concept is
+unfamiliar, but it may also do the same thing due to the text generation using unusual
+wording, formatting, or an uncommon reasoning path. If our data trajectory is selected based
+on total predicted entropy, then the data selection method may overemphasize noisy or
+semantic variable examples rather than the examples that focus on the math knowledge that
+better improve the student model’s reasoning steps.
+This project studies whether a modern Bayesian theory of uncertainty can improve reasoning-
+data selection. In the experiments, I compare two trajectory-selection methods for teacher-
+generated math solutions. The baseline rule selects the trajectory with the highest total
+predictive entropy, while the proposal method uses the rule that selects the trajectory with the
+highest epistemic uncertainty. To calculate the epistemic uncertainty, we implement the
+technique of Bayesian approximation by mutual information under Monte Carlo dropout (Gal
+and Ghahramani, 2016). In the experiment, a large teacher model generates multiple
+candidate trajectories for each math question. A Qwen2.5-3B student model then scores these
+trajectories and is subsequently fine-tuned via LoRA on the datasets produced by the two
+selection rules. The trained student models are then evaluated on GSM8K and MATH-500.
+The study further analyzes whether separating epistemic uncertainty from total uncertainty
+provides a more informative fine-tune dataset and leads to better mathematical reasoning
+performance.
+Method
+In this project, I use a teacher-student pipeline to compare two uncertainty-based rules for
+
+
+=== PAGE 2 ===
+reasoning trajectory selection. First, Qwen2.5-72B-Instruct serves as the teacher model and
+generates five candidate step-by-step solutions for each math training problem. The multiply
+generated trajectories provide distinct possible reasoning for the same question and let the
+student model determine which sample may be most informative for learning.
+To score these trajectories, Qwen2.5-3B serves as the student model. Instead of treating it as a
+traditional fully deterministic model, I approximate Bayesian uncertainty using Monte Carlo
+dropout. During inference time, dropout remains active for scoring, but gradients are disabled
+to avoid weight updates.
+For each candidate trajectory, the model performs 10 stochastic forward passes under teacher
+forcing, meaning that the model evaluates the fixed reasoning trace token by token. The
+repeated passes generate slightly different token probability distributions, which are used for
+estimating data information uncertainty for the student model.
+From these outputs, I compute two token-level uncertainty measures. The first is total
+predictive entropy, which captures the overall uncertainty of the average predictive
+distribution. The second is mutual information (MI), computed as total entropy minus
+expected entropy across the 10 stochastic passes. In this project, total entropy is regarded as
+the baseline uncertainty, while MI is used as an approximation of epistemic uncertainty, since
+it represents disagreement across stochastic passes and better captures the knowledge the
+student model lacks rather than surface-level variability.
+In order to cover the token-level uncertainty into a single trajectory score, I compute and rank
+the uncertainty values for each trajectory and average the top 50 tokens. This top-50
+aggregation focuses on the most informative parts of the reasoning chain rather than diluting
+the score across many low-information tokens within a single generated solution. Each
+candidate trajectory receives both a total entropy score and an MI score.
+These scores allow building separate fine-tuning datasets. In the baseline method, it selects
+the trajectory with the highest total entropy for each question. In the proposal method, it
+selects the trajectory with the highest MI. This produces two training datasets with different
+selection rules. These training sets are then used to fine-tune separate LoRA adapters on the
+Qwen2.5-3B base model and evaluate the trained models on GSM8K and MATH-500. This
+experiment and setup control the effect of the trajectory selection and compare the total
+predictive entropy and epistemic uncertainty for reasoning-data curation.
+Experimental Setup
+The training pipeline began with 12,000 unique math problems. For each problem, the
+teacher model, Qwen2.5-72B-Instruct, generated five candidate reasoning trajectories,
+producing 60,000 total candidate solutions. Each candidate was then scored by a Qwen2.5-3B
+student model with Monte Carlo dropout implementation. For each math problem, I selected
+one trajectory with the highest total predictive entropy to consist of the baseline dataset and
+one trajectory with the highest mutual information (MI) to consist of the epistemic dataset.
+Each of the two final fine-tune datasets contains 12,000 samples with only a difference in the
+trajectory-selection rule.
+To compare the total predictive entropy and MI of datasets, I fine-tuned two LoRA adapters
+on the same base student model, Qwen2.5-3B, using identical hyperparameters. The LoRA
+configuration used rank 16, LoRA alpha 32, and dropout. Training was conducted using 2
+epochs with a per-device batch size of 4, gradient accumulation of 4, learning rate  2 × 10−4,
+and maximum sequence length of 4096.
+
+
+=== PAGE 3 ===
+After the training procedure, both fine-tune models were evaluated on two standard
+mathematical reasoning benchmarks: MATH-500 and GSM8K. During the evaluation
+process, the models generated a single response for each math question. I then evaluate the
+models by extracting the first boxed answer from the generation and mark the prediction for
+the question correctly if the extracted string exactly matches the ground truth. The ACC@1
+metric was used to compute and represent the model's accuracy on both benchmarks. The
+reference answers for GSM8K and MATH-500 were numeric solutions and open-ended
+answers, respectively. One limitation of the benchmark method is that using exact string
+matching will penalize formatting differences even when the underlying answer is
+mathematically correct.
+Results
+Table 1 shows the experiment results. The model trained on the MI dataset slightly
+outperformed the model trained on the total-entropy dataset in both benchmarks. On MATH-
+500, accuracy increased from 46.20% to 46.40%. On GSM8K, the accuracy increased from
+79.30% to 79.45%. Although these gains are small, they are consistent across both evaluation
+results.
+Table 1. Overall benchmark accuracy (strict ACC@1)
+Benchmark
+Baseline (Total Entropy)
+Epistemic (MI)
+MATH-500
+46.20% (231/500)
+46.40% (232/500)
+GSM8K
+79.30% (1046/1319)
+79.45% (1048/1319)
+
+The MATH-500 subject breakdown (Table 2) shows that the MI model helped in some areas
+but not all. It improves Counting and Probability from 34.2% to 36.8%, Intermediate Algebra
+from 25.8% to 30.9%, Number Theory from 71.0% to 74.2%, and Precalculus from 16.1% to
+19.6%. However, it was slightly worse on Algebra, dropping from 65.3% to 64.5%, and more
+noticeably worse on Geometry, where accuracy fell from 36.6% to 29.3%, and on Prealgebra,
+where accuracy fell from 53.7% to 47.6%. This pattern suggests that the MI selection rule did
+not uniformly improve all types of reasoning, but it may have been useful in situations where
+the student model had larger knowledge gaps.
+Table 2. MATH-500 accuracy by subject
+Subject
+Total
+Baseline Accuracy
+Epistemic (MI) Accuracy
+Algebra
+124
+65.3% (81/124)
+64.5% (80/124)
+Counting & Probability 38
+34.2% (13/38)
+36.8% (14/38)
+Geometry
+41
+36.6% (15/41)
+29.3% (12/41)
+Intermediate Algebra
+97
+25.8% (25/97)
+30.9% (30/97)
+
+
+=== PAGE 4 ===
+Subject
+Total
+Baseline Accuracy
+Epistemic (MI) Accuracy
+Number Theory
+62
+71.0% (44/62)
+74.2% (46/62)
+Prealgebra
+82
+53.7% (44/82)
+47.6% (39/82)
+Precalculus
+56
+16.1% (9/56)
+19.6% (11/56)
+
+The difficulty level breakdown (Table 3) also shows a similarly mixed pattern. The MI model
+has improved on both easier and medium-difficulty problems, increasing from 72.1% to
+74.4% on Level 1, from 62.2% to 65.6% on Level 2, and from 40.6% to 43.0% on Level 4.
+The two models were tied at 53.3% on Level 3. However, at the hardest level, the MI model
+underperformed the baseline, decreasing from 26.9% to 22.4% on Level 5. This suggests that
+epistemic selection may help most when the model can still benefit from better examples, but
+it may have less influence on the hardest problems where both models remain far from
+reliable.
+Table 3. MATH-500 accuracy by difficulty level
+Difficulty Level
+Total
+Baseline Accuracy
+Epistemic (MI) Accuracy
+Level 1
+43
+72.1% (31/43)
+74.4% (32/43)
+Level 2
+90
+62.2% (56/90)
+65.6% (59/90)
+Level 3
+105
+53.3% (56/105)
+53.3% (56/105)
+Level 4
+128
+40.6% (52/128)
+43.0% (55/128)
+Level 5
+134
+26.9% (36/134)
+22.4% (30/134)
+
+The most significant interpretation is that the two selection rules produced very different
+training datasets while resulting in only small downstream differences. Across the 12,000
+training problems, the total-entropy and MI rules selected different trajectories for 8,105
+problems, or 67.54% of the dataset. In other words, the uncertainty metric change, which
+examples were originally chosen for fine-tuning on the baseline model. Despite this large
+dataset-level difference, the final benchmark gap was very small. This concludes that many
+alternative teacher trajectories may be similarly useful for supervised fine-tuning, or that the
+current evaluation may be too limited to show meaningful differences in reasoning quality.
+Conclusion
+In this study, the results provide modest evidence for using mutual information as a data
+trajectory selection method. The MI-based model performed slightly better than the total-
+entropy model on both MATH-500 and GSM8K, which suggests that epistemic uncertainty
+may help select reasoning data. However, the gains were very small, so the results are not
+
+
+=== PAGE 5 ===
+strong enough to claim that MI is clearly better than total predictive entropy.
+In conclusion, Bayesian epistemic uncertainty is a promising technique for reasoning
+trajectory selection, but in this project, it produced only modest improvements. The results
+suggest that MI-based selection is worth further research with stronger evaluation methods,
+multiple training runs, and broader experiments.
+
+
+=== PAGE 6 ===
+References
+Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek,
+J., Hilton, J., Nakano, R., Hesse, C., and Schulman, J. 2021. Training Verifiers to Solve Math
+Word Problems. arXiv preprint arXiv:2110.14168. https://arxiv.org/abs/2110.14168
+Gal, Y., and Ghahramani, Z. 2016. Dropout as a Bayesian Approximation: Representing
+Model Uncertainty in Deep Learning. In Proceedings of the 33rd International Conference
+on Machine Learning (ICML). https://proceedings.mlr.press/v48/gal16.html
+Hendrycks, D., Burns, C., Kadavath, S., Arora, A., Basart, S., Tang, E., Song, D., and
+Steinhardt, J. 2021. Measuring Mathematical Problem Solving With the MATH Dataset.
+arXiv preprint arXiv:2103.03874. https://arxiv.org/abs/2103.03874
+Kendall, A., and Gal, Y. 2017. What Uncertainties Do We Need in Bayesian Deep Learning
+for Computer Vision? In Advances in Neural Information Processing Systems
+(NeurIPS). https://papers.nips.cc/paper_files/paper/2017/hash/2650d6089a6d640c5e85b2b88
+265dc2b-Abstract.html
+Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., Le, Q., and Zhou, D.
+2022. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. arXiv
+preprint arXiv:2201.11903. https://arxiv.org/abs/2201.11903
+Zelikman, E., Wu, Y., Mu, J., and Goodman, N. 2022. STaR: Bootstrapping Reasoning With
+Reasoning. arXiv preprint arXiv:2203.14465. https://arxiv.org/abs/2203.14465

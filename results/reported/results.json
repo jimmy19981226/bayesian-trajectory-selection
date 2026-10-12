@@ -1,0 +1,105 @@
+{
+  "status": "reported in original final paper; not reproduced during restoration",
+  "source": "sources/final-paper.pdf, Tables 1-3, pages 3-4",
+  "overall": [
+    {
+      "benchmark": "MATH-500",
+      "total": 500,
+      "baseline_correct": 231,
+      "mi_correct": 232,
+      "baseline_percent_reported": 46.2,
+      "mi_percent_reported": 46.4
+    },
+    {
+      "benchmark": "GSM8K",
+      "total": 1319,
+      "baseline_correct": 1046,
+      "mi_correct": 1048,
+      "baseline_percent_reported": 79.3,
+      "mi_percent_reported": 79.45
+    }
+  ],
+  "math500_subjects": [
+    {
+      "subject": "Algebra",
+      "total": 124,
+      "baseline_correct": 81,
+      "mi_correct": 80
+    },
+    {
+      "subject": "Counting & Probability",
+      "total": 38,
+      "baseline_correct": 13,
+      "mi_correct": 14
+    },
+    {
+      "subject": "Geometry",
+      "total": 41,
+      "baseline_correct": 15,
+      "mi_correct": 12
+    },
+    {
+      "subject": "Intermediate Algebra",
+      "total": 97,
+      "baseline_correct": 25,
+      "mi_correct": 30
+    },
+    {
+      "subject": "Number Theory",
+      "total": 62,
+      "baseline_correct": 44,
+      "mi_correct": 46
+    },
+    {
+      "subject": "Prealgebra",
+      "total": 82,
+      "baseline_correct": 44,
+      "mi_correct": 39
+    },
+    {
+      "subject": "Precalculus",
+      "total": 56,
+      "baseline_correct": 9,
+      "mi_correct": 11
+    }
+  ],
+  "math500_levels": [
+    {
+      "level": 1,
+      "total": 43,
+      "baseline_correct": 31,
+      "mi_correct": 32
+    },
+    {
+      "level": 2,
+      "total": 90,
+      "baseline_correct": 56,
+      "mi_correct": 59
+    },
+    {
+      "level": 3,
+      "total": 105,
+      "baseline_correct": 56,
+      "mi_correct": 56
+    },
+    {
+      "level": 4,
+      "total": 128,
+      "baseline_correct": 52,
+      "mi_correct": 55
+    },
+    {
+      "level": 5,
+      "total": 134,
+      "baseline_correct": 36,
+      "mi_correct": 30
+    }
+  ],
+  "selection": {
+    "problems": 12000,
+    "candidates_per_problem": 5,
+    "candidate_trajectories": 60000,
+    "different_winners": 8105,
+    "disagreement_percent_reported": 67.54
+  }
+}

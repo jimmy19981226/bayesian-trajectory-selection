@@ -1,0 +1,20 @@
+[
+  {
+    "original_filename": "CS677 Fianl Paper.pdf",
+    "archived_path": "sources/final-paper.pdf",
+    "sha256": "f045be2a4dd413874088a6ef893fe3b55d676a95567aaecf9ca8386dd06ba043",
+    "status": "original, byte-for-byte copy"
+  },
+  {
+    "original_filename": "CS677 Final Presentation.pptx",
+    "archived_path": "sources/final-presentation.pptx",
+    "sha256": "773abae752586fe53a1e0a90b08c09b50c1188ae375bb6a5062dca3258fe523c",
+    "status": "original, byte-for-byte copy"
+  },
+  {
+    "original_filename": "CS677 Final Project.ipynb",
+    "archived_path": "sources/original-notebook.ipynb",
+    "sha256": "64e6c664204fa8c1ae41bacc42cbd47e3048a118826ef33e3ab7a6132a16305d",
+    "status": "original, byte-for-byte copy"
+  }
+]

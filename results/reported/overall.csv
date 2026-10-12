@@ -1,0 +1,3 @@
+benchmark,total,baseline_correct,mi_correct,baseline_percent_reported,mi_percent_reported
+MATH-500,500,231,232,46.2,46.4
+GSM8K,1319,1046,1048,79.3,79.45

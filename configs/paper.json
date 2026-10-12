@@ -1,0 +1,45 @@
+{
+  "purpose": "Reference configuration, not automatically consumed by the CLI; command flags are shown in README.md",
+  "reported_in_paper": {
+    "teacher": "Qwen/Qwen2.5-72B-Instruct",
+    "student": "Qwen/Qwen2.5-3B",
+    "training_problems": 12000,
+    "candidates_per_problem": 5,
+    "mc_passes": 10,
+    "top_m_tokens": 50,
+    "selection": "one argmax trajectory per problem for each metric",
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "epochs": 2,
+    "per_device_batch_size": 4,
+    "gradient_accumulation_steps": 4,
+    "learning_rate": 0.0002,
+    "max_sequence_length": 4096,
+    "metric": "ACC@1, first boxed answer, strict string equality"
+  },
+  "recovered_from_notebook": {
+    "training_dataset": "rasbt/math_full_minus_math500",
+    "split": "train",
+    "attention_dropout": 0.1,
+    "quantization": "4-bit NF4, double quantization, bfloat16 compute"
+  },
+  "reconstruction_defaults_not_preserved_in_sources": {
+    "seed": 42,
+    "teacher_temperature": 0.7,
+    "teacher_top_p": 0.95,
+    "max_new_tokens": 2048,
+    "lora_dropout": 0.05,
+    "lora_targets": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    "training_attention_dropout": "base model configuration (normally 0), separate from MC scoring",
+    "optimizer": "Trainer default AdamW",
+    "scheduler": "linear",
+    "warmup_ratio": 0,
+    "weight_decay": 0,
+    "prompt": "see cs677.modeling.student_prompt",
+    "score_and_loss_mask": "completion tokens including EOS only",
+    "truncation": "right truncation, flag/count recorded",
+    "evaluation_decoding": "greedy",
+    "score_quantization": "optional --quantize; use flag to match recovered notebook",
+    "training_quantization": "optional --quantize; original training precision unknown"
+  }
+}

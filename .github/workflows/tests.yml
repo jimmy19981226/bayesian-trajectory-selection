@@ -1,0 +1,23 @@
+name: Tests
+on: [push, pull_request]
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest tests/test_core.py -q
+      - run: cs677 demo --output runs/demo
+  tiny-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -e '.[ml,dev]'
+      - run: HF_HUB_OFFLINE=1 pytest tests/test_modeling.py tests/test_pipeline.py -q

@@ -1,0 +1,174 @@
+Text only; equations and charts embedded as images remain in the original PPTX.
+
+=== SLIDE 1 ===
+
+CS 677 Final Project
+Bayesian Epistemic Uncertainty for LLM Trajectory Selection
+Can epistemic uncertainty choose better reasoning trajectories for fine-tuning than standard entropy?
+Better post-training data curation may help small language models learn reasoning more efficiently.
+James Chen
+
+=== SLIDE 2 ===
+
+
+Why Standard Entropy Is Not Enough
+Not all uncertainty is equally useful for data selection.
+
+
+ALEATORIC
+Data Uncertainty
+Inherent ambiguity or noise in the response itself.
+Manifests as variable wording, formatting, or phrasing.
+Choosing this leads to training on random noise.
+
+EPISTEMIC
+Model Uncertainty
+The model truly does not know the concept or reasoning step.
+Reflects a genuine lack of mathematical knowledge.
+Hypothesis: This is the critical signal for trajectory selection.
+
+High entropy is not always useful if it mostly reflects noise instead of missing knowledge.
+
+=== SLIDE 3 ===
+
+
+Estimate Epistemic Uncertainty
+
+
+STEP 1
+Re-run the same trajectory
+• Feed one candidate reasoning trajectory into Qwen2.5-3B multiple times
+• Keep
+dropout active
+ so each pass is slightly different
+
+
+STEP 2
+Compare the predictions
+• Each pass produces a slightly different prediction pattern
+•
+Agreement
+ suggests confidence
+•
+Disagreement
+ suggests uncertainty from missing knowledge
+
+
+STEP 3
+Score the trajectory
+• Trajectories with meaningful disagreement get higher scores
+• Higher score means the example is more useful for fine-tuning
+
+High disagreement across dropout passes means the student model probably does not fully understand that reasoning pattern yet.
+
+=== SLIDE 4 ===
+
+
+How the Score Is Computed
+From multiple dropout passes to an epistemic uncertainty score
+
+
+STEP 1
+Average the predictions
+[ Equation Placeholder ]
+Average the token probabilities across the dropout passes.
+
+
+STEP 2
+Compute total entropy
+[ Equation Placeholder ]
+Measure the uncertainty of the averaged prediction.
+
+
+STEP 3
+Compute expected entropy
+[ Equation Placeholder ]
+Average the uncertainty inside each individual dropout pass.
+
+
+STEP 4
+Get epistemic uncertainty
+[ Equation Placeholder ]
+Subtract expected entropy from total entropy to isolate disagreement.
+
+K = 10 dropout passes • t = token position • v = vocabulary token
+
+=== SLIDE 5 ===
+
+
+Experimental Pipeline
+
+
+Generate Candidate Data
+Teacher model: Qwen2.5-72B-Instruct
+12,000 math problems
+5 reasoning trajectories per problem
+60,000 total candidate trajectories
+
+
+Score and Select Trajectories
+Student model: Qwen2.5-3B
+Each trajectory scored with 10 MC-dropout passes
+Baseline: total entropy
+Proposed: epistemic uncertainty via mutual info
+One winner selected per scoring rule
+
+
+Fine-Tune and Compare
+Train two separate LoRA student models
+One model uses baseline-selected data
+One model uses epistemic-selected data
+Evaluate on downstream reasoning benchmarks
+
+The scoring rule materially changed the training data: the two methods selected different winning trajectories for
+67.54%
+ of problems.
+
+=== SLIDE 6 ===
+
+
+Evaluation
+
+
+Evaluation Setup
+Benchmarks: MATH-500 and GSM8K
+Compare baseline vs. epistemic selection
+Primary Metric: ACC@1
+Extract first boxed final answer
+Grade by exact string match
+
+The only experimental difference between the two models is the
+trajectory selection rule
+.
+
+=== SLIDE 7 ===
+
+
+=== SLIDE 8 ===
+
+
+=== SLIDE 9 ===
+
+
+Conclusion and Future Work
+
+
+Main Takeaway
+Epistemic uncertainty slightly outperformed total-entropy selection
+The improvement was positive on both MATH-500 and GSM8K
+The effect size was small
+
+
+What This Means
+Bayesian uncertainty is a promising direction for trajectory selection
+Useful for identifying informative reasoning data
+Result is not yet strong enough to be considered definitive
+
+
+Next Steps
+Stronger answer normalization and equivalence checking
+Combine with diversity-aware selection
+Test larger ablations and selection budgets
+Improve uncertainty preservation during distillation
+
+This project should be viewed as a promising proof of concept rather than a final conclusive result.
