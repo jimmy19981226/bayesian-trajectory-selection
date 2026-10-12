@@ -28,6 +28,14 @@ def check_output(path):
         raise FileExistsError(f'{path} exists; choose a new output to preserve previous runs')
 
 
+def training_precision(device):
+    """Choose mixed precision for the selected device, not unrelated accelerators."""
+    import torch
+    cuda = device == 'cuda'
+    bf16 = cuda and torch.cuda.is_bf16_supported()
+    return {'bf16': bf16, 'fp16': cuda and not bf16, 'use_cpu': device == 'cpu'}
+
+
 def prepare(args):
     from datasets import load_dataset
     check_output(args.output)
@@ -125,9 +133,7 @@ def train(args):
         learning_rate=args.learning_rate, seed=args.seed, data_seed=args.seed,
         lr_scheduler_type='linear', warmup_steps=0, weight_decay=0,
         logging_steps=10, save_strategy='epoch', save_total_limit=2, report_to='none',
-        bf16=bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
-        fp16=bool(torch.cuda.is_available() and not torch.cuda.is_bf16_supported()),
-        use_cpu=args.device == 'cpu', gradient_checkpointing=True,
+        **training_precision(model.device.type), gradient_checkpointing=True,
         gradient_checkpointing_kwargs={'use_reentrant': False})
     trainer = Trainer(model=model, args=settings, train_dataset=data,
                       data_collator=CompletionCollator(tokenizer.pad_token_id))

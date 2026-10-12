@@ -6,6 +6,28 @@ torch = pytest.importorskip('torch')
 transformers = pytest.importorskip('transformers')
 from cs677.modeling import score_trajectory, verify_dropout, encode_example, CompletionCollator
 from cs677.uncertainty import decompose, top_m_mean
+from cs677.pipeline import training_precision
+
+
+@pytest.mark.parametrize('device', ['cpu', 'mps'])
+def test_non_cuda_training_does_not_enable_cuda_precision(device, monkeypatch):
+    monkeypatch.setattr(torch.cuda, 'is_available', lambda: True)
+
+    def unexpected_cuda_query():
+        pytest.fail('Non-CUDA training queried CUDA precision support')
+
+    monkeypatch.setattr(torch.cuda, 'is_bf16_supported', unexpected_cuda_query)
+    assert training_precision(device) == {
+        'bf16': False, 'fp16': False, 'use_cpu': device == 'cpu'
+    }
+
+
+@pytest.mark.parametrize('bf16_supported', [True, False])
+def test_cuda_training_chooses_one_precision(bf16_supported, monkeypatch):
+    monkeypatch.setattr(torch.cuda, 'is_bf16_supported', lambda: bf16_supported)
+    assert training_precision('cuda') == {
+        'bf16': bf16_supported, 'fp16': not bf16_supported, 'use_cpu': False
+    }
 
 
 def tiny_model(dropout=.2):

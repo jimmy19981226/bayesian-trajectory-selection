@@ -1,4 +1,5 @@
 import argparse
+import math
 from pathlib import Path
 
 
@@ -87,8 +88,8 @@ def main(argv=None):
     for key in ('limit', 'candidates', 'max_new_tokens', 'max_length', 'top_m', 'token_chunk_size',
                 'batch_size', 'gradient_accumulation', 'rank', 'alpha', 'epochs', 'learning_rate', 'temperature'):
         value = getattr(args, key, None)
-        if value is not None and value <= 0:
-            p.error(f'--{key.replace("_", "-")} must be positive')
+        if value is not None and (not math.isfinite(value) or value <= 0):
+            p.error(f'--{key.replace("_", "-")} must be finite and positive')
     if getattr(args, 'start', 0) < 0:
         p.error('--start must be nonnegative')
     if getattr(args, 'passes', 2) < 2:

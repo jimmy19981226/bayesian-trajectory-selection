@@ -1,5 +1,5 @@
 {
-  "purpose": "Reference configuration, not automatically consumed by the CLI; command flags are shown in README.md",
+  "purpose": "Reference configuration, not automatically consumed by the CLI; full experiment commands are in docs/REPRODUCING.md",
   "reported_in_paper": {
     "teacher": "Qwen/Qwen2.5-72B-Instruct",
     "student": "Qwen/Qwen2.5-3B",

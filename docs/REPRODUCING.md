@@ -4,7 +4,7 @@
 
 The reported result tables can be reproduced from the archived paper and the structured transcriptions. The experiments can be **rerun using a reconstructed implementation**, but exact numerical reproduction of the original training run is not guaranteed because original trajectories, weights, settings, and logs are missing.
 
-The configuration JSON documents evidence and defaults; it is not a live CLI configuration loader. CLI flags are the executable source of run settings. Both baseline and epistemic commands must use the same training and evaluation flags.
+The configuration JSON documents evidence and defaults; it is not a live CLI configuration loader. CLI flags are the executable source of run settings; positive numeric settings must be finite. Training chooses mixed precision from the model's selected device, so an explicit CPU run stays in full precision even on a CUDA-capable host. Both baseline and epistemic commands must use the same training and evaluation flags.
 
 ## Installation
 
@@ -20,6 +20,32 @@ Tiny-model tests create random Qwen2 models locally. No downloaded pretrained ch
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 HF_HUB_OFFLINE=1 python -m pytest -q
 ```
+
+## Full experiment commands
+
+
+```bash
+python -m pip install -e '.[ml,dev]'
+# Optional, for the recovered CUDA NF4 scoring path:
+python -m pip install -e '.[quantization]'
+
+cs677 prepare --output data/problems.jsonl
+cs677 generate --input data/problems.jsonl --output data/candidates.jsonl
+cs677 score --input data/candidates.jsonl --output data/scored.jsonl --quantize
+cs677 select --input data/scored.jsonl --output data/selected
+
+cs677 train --train-file data/selected/baseline.jsonl --output runs/baseline
+cs677 train --train-file data/selected/epistemic.jsonl --output runs/epistemic
+
+cs677 evaluate --adapter runs/baseline --benchmark math500 --output runs/baseline-math500
+cs677 evaluate --adapter runs/epistemic --benchmark math500 --output runs/epistemic-math500
+cs677 evaluate --adapter runs/baseline --benchmark gsm8k --output runs/baseline-gsm8k
+cs677 evaluate --adapter runs/epistemic --benchmark gsm8k --output runs/epistemic-gsm8k
+```
+
+**Hardware:** the default 72B teacher requires substantial accelerator memory. Full generation and 600,000 stochastic student passes are expensive. They were not run as part of restoration. Use existing teacher JSONL data or a suitable GPU machine for the complete study. `--quantize` is a CUDA-only path in this implementation; omit it on a Mac/CPU. A smaller teacher selected with `--model` is a different experiment. Start with `--limit 2` on `prepare`, and use a new output path for every run.
+
+Run `cs677 COMMAND --help` for parameters. The sections below cover file schemas, memory, revisions, assumptions, and validation. Output files/directories are protected against accidental reuse. Long jobs write completed JSONL records progressively; automatic resume is not implemented.
 
 ## Data contracts
 
