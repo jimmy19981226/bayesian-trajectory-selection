@@ -11,8 +11,6 @@ MC dropout · Mutual information · LoRA distillation · Mathematical reasoning
 
 [Results](#reported-results) · [Quick start](#quick-start) · [Method](#how-it-works) · [Paper](sources/final-paper.pdf) · [Reproduction guide](docs/REPRODUCING.md)
 
-**James Chen · CS 677 Final Project**
-
 </div>
 
 This research project compares **total predictive entropy** with **epistemic mutual information (MI)** as selection rules for teacher-generated math solutions. A Qwen2.5-72B-Instruct teacher proposes five trajectories per problem; a Qwen2.5-3B student scores them with Monte Carlo dropout, then learns from each selected dataset through a separate LoRA adapter.
