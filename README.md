@@ -67,13 +67,13 @@ These tests initialize a tiny random Qwen model, train and reload LoRA adapters,
 
 ```mermaid
 flowchart TD
-    A["12,000 math problems · MATH-500 excluded"] --> B["72B teacher · 5 trajectories per problem"]
-    B --> C["3B student · 10 MC dropout passes per trajectory"]
-    C --> D["Top-50 total entropy · select one per problem"]
-    C --> E["Top-50 mutual information · select one per problem"]
-    D --> F["LoRA adapter · entropy dataset"]
-    E --> G["LoRA adapter · MI dataset"]
-    F --> H["MATH-500 and GSM8K · strict ACC@1"]
+    A["12,000 problems<br/>MATH-500 excluded"] --> B["72B teacher<br/>5 candidates per problem"]
+    B --> C["3B student<br/>10 MC dropout passes"]
+    C --> D["Top-50 entropy<br/>Argmax per problem"]
+    C --> E["Top-50 MI<br/>Argmax per problem"]
+    D --> F["Entropy LoRA adapter"]
+    E --> G["MI LoRA adapter"]
+    F --> H["MATH-500 + GSM8K<br/>Strict ACC@1"]
     G --> H
 ```
 
