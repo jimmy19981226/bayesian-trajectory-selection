@@ -36,7 +36,7 @@ Qwen2.5-3B scores a fixed candidate solution under teacher forcing using **K = 1
 For token position $t$, vocabulary token $v$, and dropout sample $k$:
 
 ```math
-p_t^{(k)}(v)=p(v\mid x,y_{<t},\theta^{(k)}), \qquad
+p_t^{(k)}(v)=p(v\mid x,y_{\lt t},\theta^{(k)}), \qquad
 \bar p_t(v)=\frac{1}{K}\sum_{k=1}^{K}p_t^{(k)}(v).
 ```
 

@@ -4,13 +4,13 @@ This document restates the final paper's uncertainty method and derives a clearl
 
 ## Motivation: uncertainty is not a single quantity
 
-Let $x$ be a math problem and $y=(y_1,\dots,y_T)$ a fixed teacher trajectory. A student predicts a distribution over the vocabulary at each step conditioned on $x,y_{<t}$. A broad distribution can reflect multiple valid ways to continue, unusual wording, or missing knowledge. The project's hypothesis is that separating disagreement between model samples from uncertainty within each sample will improve data curation.
+Let $x$ be a math problem and $y=(y_1,\dots,y_T)$ a fixed teacher trajectory. A student predicts a distribution over the vocabulary at each step conditioned on $x,y_{\lt t}$. A broad distribution can reflect multiple valid ways to continue, unusual wording, or missing knowledge. The project's hypothesis is that separating disagreement between model samples from uncertainty within each sample will improve data curation.
 
 In a Bayesian treatment, parameters have a posterior $p(\theta\mid\mathcal D)$ and the posterior predictive distribution averages over parameters. MC dropout replaces this posterior with an approximate distribution induced by stochastic dropout masks. The restored implementation keeps Qwen attention dropout active for repeated teacher-forced passes with no gradient updates.
 
 ## Entropy decomposition
 
-For a fixed context $c_t=(x,y_{<t})$, write $p_k(v)=p(y_t=v\mid c_t,\theta_k)$ and $\bar p=K^{-1}\sum_kp_k$.
+For a fixed context $c_t=(x,y_{\lt t})$, write $p_k(v)=p(y_t=v\mid c_t,\theta_k)$ and $\bar p=K^{-1}\sum_kp_k$.
 
 ```math
 H[\bar p]=-\sum_v\bar p(v)\log\bar p(v),\qquad
@@ -96,7 +96,7 @@ This returns weights, not an already selected dataset. Sampling, budget allocati
 For a selected dataset $\mathcal S$, supervised fine-tuning minimizes completion-token negative log-likelihood:
 
 ```math
-\mathcal L(\phi)=-\sum_{(x,y)\in\mathcal S}\sum_t\log p_{\theta,\phi}(y_t\mid x,y_{<t}).
+\mathcal L(\phi)=-\sum_{(x,y)\in\mathcal S}\sum_t\log p_{\theta,\phi}(y_t\mid x,y_{\lt t}).
 ```
 
 Base parameters $\theta$ are frozen and LoRA parameters $\phi$ are trained. A projection becomes $W'=W+(\alpha/r)BA$ with low-rank matrices A and B. The paper reports r=16 and alpha=32. The restored training command uses completion-only labels and masks prompt/padding positions; the source does not state the original label mask.
