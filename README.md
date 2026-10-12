@@ -65,17 +65,7 @@ These tests initialize a tiny random Qwen model, train and reload LoRA adapters,
 
 ## How it works
 
-```mermaid
-flowchart TD
-    A["12,000 problems<br/>MATH-500 excluded"] --> B["72B teacher<br/>5 candidates per problem"]
-    B --> C["3B student<br/>10 MC dropout passes"]
-    C --> D["Top-50 entropy<br/>Argmax per problem"]
-    C --> E["Top-50 MI<br/>Argmax per problem"]
-    D --> F["Entropy LoRA adapter"]
-    E --> G["MI LoRA adapter"]
-    F --> H["MATH-500 + GSM8K<br/>Strict ACC@1"]
-    G --> H
-```
+![Pipeline: math problems to teacher candidates to MC dropout scoring; entropy and MI select separate datasets for two LoRA adapters, evaluated on MATH-500 and GSM8K.](docs/assets/pipeline.svg)
 
 The distinction is **uncertainty within predictions versus disagreement across predictions**. If every dropout pass produces the same uncertain distribution, entropy can be high while MI is zero. If passes confidently disagree, MI is high. The implementation computes MI per token, averages its top 50 values, and selects the highest-scoring trajectory per problem.
 
