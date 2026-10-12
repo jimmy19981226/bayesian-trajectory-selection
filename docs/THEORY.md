@@ -12,13 +12,17 @@ In a Bayesian treatment, parameters have a posterior $p(\theta\mid\mathcal D)$ a
 
 For a fixed context $c_t=(x,y_{<t})$, write $p_k(v)=p(y_t=v\mid c_t,\theta_k)$ and $\bar p=K^{-1}\sum_kp_k$.
 
-$$H[\bar p]=-\sum_v\bar p(v)\log\bar p(v),\qquad
-\mathbb E_kH[p_k]=-\frac1K\sum_k\sum_vp_k(v)\log p_k(v).$$
+```math
+H[\bar p]=-\sum_v\bar p(v)\log\bar p(v),\qquad
+\mathbb E_kH[p_k]=-\frac1K\sum_k\sum_vp_k(v)\log p_k(v).
+```
 
 The empirical mutual information is
 
-$$I(y_t;\theta\mid c_t,\mathcal D)\approx H[\bar p]-\mathbb E_kH[p_k]
-=\frac1K\sum_kD_{\mathrm{KL}}(p_k\Vert\bar p).$$
+```math
+I(y_t;\theta\mid c_t,\mathcal D)\approx H[\bar p]-\mathbb E_kH[p_k]
+=\frac1K\sum_kD_{\mathrm{KL}}(p_k\Vert\bar p).
+```
 
 The KL identity shows that MI is nonnegative in exact arithmetic and zero when all samples give the same distribution. Logs are natural, so values are in nats. MI is at most $\min(\log K,\log|V|)$ for this finite ensemble. Floating-point subtraction can produce tiny negatives; the implementation clamps those to zero.
 
@@ -49,22 +53,30 @@ The notebook mentions normalized utility and a chi-squared-regularized closed-fo
 
 Given utilities $u_i$, a strictly positive reference distribution $p_i$, and $\lambda>0$, solve
 
-$$\max_{q\ge0,\,\sum_iq_i=1}\;q^\top u-\frac\lambda2D_{\chi^2}(q\Vert p),\qquad
-D_{\chi^2}(q\Vert p)=\sum_i\frac{(q_i-p_i)^2}{p_i}.$$
+```math
+\max_{q\ge0,\,\sum_iq_i=1}\;q^\top u-\frac\lambda2D_{\chi^2}(q\Vert p),\qquad
+D_{\chi^2}(q\Vert p)=\sum_i\frac{(q_i-p_i)^2}{p_i}.
+```
 
 The factor $1/2$ and divergence direction are part of this reconstruction. The objective is strictly concave on the simplex. For an active coordinate, the derivative of the Lagrangian gives
 
-$$u_i-\lambda\frac{q_i-p_i}{p_i}-\eta=0.$$
+```math
+u_i-\lambda\frac{q_i-p_i}{p_i}-\eta=0.
+```
 
 Combining stationarity with nonnegativity yields
 
-$$q_i=p_i\max\left(0,1+\frac{u_i-\eta}{\lambda}\right).$$
+```math
+q_i=p_i\max\left(0,1+\frac{u_i-\eta}{\lambda}\right).
+```
 
 Choose $\eta$ so $\sum_iq_i=1$. The left side is continuous and monotone in $\eta$, so bisection finds the unique probability vector. This is the method implemented by `chi_squared_weights`; it is a closed-form coordinate rule with a numerically solved normalization threshold.
 
 If all coordinates remain active, $\eta=\sum_ip_iu_i$ and
 
-$$q_i=p_i\left(1+\frac{u_i-\mathbb E_pu}{\lambda}\right).$$
+```math
+q_i=p_i\left(1+\frac{u_i-\mathbb E_pu}{\lambda}\right).
+```
 
 Equal utilities return the prior. Large regularization favors the prior; small regularization concentrates mass on maxima. A constant offset in all utilities leaves q unchanged. Scaling utilities changes the effective regularization, so a normalization choice must be reported. The library deliberately does not impose an undocumented normalization; callers may, for example, use min-max scaling with a constant-vector fallback.
 
@@ -83,7 +95,9 @@ This returns weights, not an already selected dataset. Sampling, budget allocati
 
 For a selected dataset $\mathcal S$, supervised fine-tuning minimizes completion-token negative log-likelihood:
 
-$$\mathcal L(\phi)=-\sum_{(x,y)\in\mathcal S}\sum_t\log p_{\theta,\phi}(y_t\mid x,y_{<t}).$$
+```math
+\mathcal L(\phi)=-\sum_{(x,y)\in\mathcal S}\sum_t\log p_{\theta,\phi}(y_t\mid x,y_{<t}).
+```
 
 Base parameters $\theta$ are frozen and LoRA parameters $\phi$ are trained. A projection becomes $W'=W+(\alpha/r)BA$ with low-rank matrices A and B. The paper reports r=16 and alpha=32. The restored training command uses completion-only labels and masks prompt/padding positions; the source does not state the original label mask.
 
