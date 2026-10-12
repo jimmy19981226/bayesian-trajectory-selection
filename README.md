@@ -69,7 +69,7 @@ This is a model-dependent proxy, not a direct measurement of missing mathematica
 For either token score $u_t$, take the mean of the 50 largest scores (or all scored tokens when a trajectory has fewer than 50):
 
 ```math
-S_u(y\mid x)=\frac{1}{m'}\sum_{t\in\operatorname{Top}_{m'}(u)}u_t,
+S_u(y\mid x)=\frac{1}{m'}\sum_{t\in\mathrm{Top}_{m'}(u)}u_t,
 \qquad m'=\min(50,T).
 ```
 
