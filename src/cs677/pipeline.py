@@ -123,7 +123,7 @@ def train(args):
     settings = TrainingArguments(output_dir=args.output, num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size, gradient_accumulation_steps=args.gradient_accumulation,
         learning_rate=args.learning_rate, seed=args.seed, data_seed=args.seed,
-        lr_scheduler_type='linear', warmup_ratio=0, weight_decay=0,
+        lr_scheduler_type='linear', warmup_steps=0, weight_decay=0,
         logging_steps=10, save_strategy='epoch', save_total_limit=2, report_to='none',
         bf16=bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
         fp16=bool(torch.cuda.is_available() and not torch.cuda.is_bf16_supported()),

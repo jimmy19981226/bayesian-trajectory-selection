@@ -33,7 +33,7 @@
     "training_attention_dropout": "base model configuration (normally 0), separate from MC scoring",
     "optimizer": "Trainer default AdamW",
     "scheduler": "linear",
-    "warmup_ratio": 0,
+    "warmup_steps": 0,
     "weight_decay": 0,
     "prompt": "see cs677.modeling.student_prompt",
     "score_and_loss_mask": "completion tokens including EOS only",
