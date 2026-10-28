@@ -9,7 +9,7 @@ MC dropout · Mutual information · LoRA distillation · Mathematical reasoning
 [![Tests](https://github.com/jimmy19981226/bayesian-trajectory-selection/actions/workflows/tests.yml/badge.svg)](https://github.com/jimmy19981226/bayesian-trajectory-selection/actions/workflows/tests.yml)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 
-[Results](#reported-results) · [Quick start](#quick-start) · [Method](#how-it-works) · [Paper](sources/final-paper.pdf) · [Reproduction guide](docs/REPRODUCING.md)
+[Review guide](#review-guide) · [Results](#reported-results) · [Quick start](#quick-start) · [Method](#how-it-works) · [Paper](sources/final-paper.pdf) · [Reproduction guide](docs/REPRODUCING.md)
 
 </div>
 
@@ -18,6 +18,15 @@ This research project compares **total predictive entropy** with **epistemic mut
 The repository includes an offline numerical demo, a modular model pipeline, archived research sources, and tests that exercise generation, uncertainty scoring, fine-tuning, and evaluation on a tiny local Qwen model.
 
 > **Evidence status:** The paper, slides, and partial notebook are preserved. The Python pipeline is a documented reconstruction. Benchmark scores below come from the original paper and have **not been independently reproduced**; the original trajectories, trained adapters, and prediction logs were not recovered. [Recovery record →](docs/RECOVERY.md)
+
+## Review guide
+
+1. **Run the idea on a laptop:** the [quick start](#quick-start) generates synthetic candidate scores and a selection-disagreement report without model downloads.
+2. **Inspect the numerical claim:** [uncertainty.py](src/cs677/uncertainty.py) decomposes uncertainty; [core tests](tests/test_core.py) check known entropy values, invalid probabilities, and deterministic selection.
+3. **Inspect the model implementation:** [modeling.py](src/cs677/modeling.py) handles completion-token alignment, stochastic dropout, and chunked vocabulary projection; [model tests](tests/test_modeling.py) check behavior on a tiny local model.
+4. **Assess the evidence:** compare [historical results](docs/RESULTS.md) with the [recovery record](docs/RECOVERY.md) before interpreting the reported gains.
+
+A small example explains the distinction: two passes that both predict `[0.5, 0.5]` have predictive entropy `ln(2)` and MI `0`. Passes that predict `[1, 0]` and `[0, 1]` have the same predictive entropy but MI `ln(2)`. The [known-answer test](tests/test_core.py) verifies this distinction independently of a language model.
 
 ## Reported results
 
